@@ -1,9 +1,9 @@
-fastapi==0.115.12
-uvicorn[standard]==0.34.0
-python-multipart==0.0.20
-pydantic==2.11.2
-pydantic-settings==2.8.1
-openai==1.70.0
-pypdf==5.4.0
+fastapi==0.135.2
+uvicorn[standard]==0.42.0
+python-multipart==0.0.22
+pydantic==2.12.5
+pydantic-settings==2.13.1
+openai==2.30.0
+pypdf==6.9.2
 httpx==0.28.1
-pytest==8.3.5
+pytest==9.0.2

@@ -109,7 +109,7 @@ button:disabled {
 .requirements-grid {
   display: grid;
   gap: 0.8rem;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: 1fr;
 }
 
 .chip {
@@ -130,12 +130,43 @@ pre {
   overflow: auto;
 }
 
-.draft h3 {
-  margin-bottom: 0.2rem;
+.draft-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
 }
 
-.draft p {
+.draft-actions button {
   margin-top: 0;
+}
+
+.markdown-draft h2 {
+  margin: 1rem 0 0.4rem;
+  font-size: 1.1rem;
+}
+
+.markdown-draft h2:first-child {
+  margin-top: 0;
+}
+
+.markdown-draft p {
+  margin: 0 0 0.6rem;
+  line-height: 1.5;
+}
+
+.markdown-draft ul,
+.markdown-draft ol {
+  margin: 0.4rem 0 0.8rem;
+  padding-left: 1.3rem;
+}
+
+.markdown-draft li {
+  margin: 0.25rem 0;
+}
+
+.markdown-draft strong {
+  font-weight: 700;
 }
 
 .score {
@@ -146,6 +177,78 @@ pre {
 .checklist-list {
   display: grid;
   gap: 0.6rem;
+}
+
+.checklist-scroll {
+  max-height: 460px;
+  overflow: auto;
+  padding-right: 0.3rem;
+}
+
+.checklist-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0.3rem;
+}
+
+.summary-pill {
+  margin: 0;
+  background: #efefef;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.summary-pill-ok {
+  background: #d8efe8;
+  color: #0d5f4a;
+}
+
+.summary-pill-warn {
+  background: #f7efd6;
+  color: #8d6b13;
+}
+
+.summary-pill-bad {
+  background: #f8dddd;
+  color: #8e2424;
+}
+
+.checklist-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0.3rem 0 0.2rem;
+}
+
+.filter-button {
+  margin-top: 0;
+  background: #e8e4da;
+  color: #2b2b2b;
+  border: 1px solid #d6d1c5;
+  padding: 0.45rem 0.7rem;
+}
+
+.filter-button.is-active {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+
+.checklist-count {
+  margin: 0.2rem 0 0.6rem;
+  color: #4b4b4b;
+  font-size: 0.95rem;
+}
+
+.checklist-empty {
+  margin: 0;
+  padding: 0.6rem;
+  border: 1px dashed #d6d1c5;
+  border-radius: 10px;
+  background: #faf8f2;
 }
 
 .check-item {

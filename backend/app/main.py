@@ -1,4 +1,5 @@
 import sys
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -15,11 +16,29 @@ if str(PROJECT_ROOT) not in sys.path:
 
 
 settings = get_settings()
+
+
+def configure_app_logging(level_name: str) -> None:
+    level = getattr(logging, level_name.upper(), logging.INFO)
+    app_logger = logging.getLogger("app")
+    app_logger.setLevel(level)
+
+    if not app_logger.handlers:
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s [%(name)s] %(message)s"))
+        app_logger.addHandler(handler)
+
+    app_logger.propagate = False
+
+
+configure_app_logging(settings.app_log_level)
 app = FastAPI(title="Grant LLM Pipeline", version="0.1.0")
+
+frontend_origins = [origin.strip() for origin in settings.frontend_origin.split(",") if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_origin],
+    allow_origins=frontend_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

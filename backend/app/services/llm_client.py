@@ -41,7 +41,7 @@ class LLMClient:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            response_format={"type": "json_object"},
+            text={"format": {"type": "json_object"}},
         )
 
         output_text = response.output_text

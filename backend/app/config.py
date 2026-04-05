@@ -10,9 +10,10 @@ class Settings(BaseSettings):
     openai_model_extraction: str = "gpt-4.1-mini"
     openai_model_generation: str = "gpt-4.1"
     llm_context_switch_tokens: int = 20000
-    llm_mock: bool = True
+    llm_mock: bool = False
     max_upload_mb: int = 10
-    frontend_origin: str = "http://localhost:5173"
+    frontend_origin: str = "http://localhost:5173,http://127.0.0.1:5173"
+    app_log_level: str = "INFO"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

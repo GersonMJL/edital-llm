@@ -5,7 +5,7 @@ from app.services.llm_client import LLMClient
 SYSTEM_PROMPT = """
 You extract requirements from a funding call notice and must return valid JSON only.
 Required fields: criterios, prazos, formatacao, temas_prioritarios.
-Each field must be a list of short strings.
+Each field must be a list of self contained short strings.
 All extracted string content must be written in Brazilian Portuguese (pt-BR).
 """.strip()
 
@@ -15,12 +15,13 @@ def extract_requirements(edital_text: str, llm: LLMClient) -> ExtractedRequireme
 Analyze the funding call text below and extract the requested requirements.
 
 FUNDING CALL TEXT:
-{edital_text[:12000]}
+{edital_text}
 
 Return JSON with the required fields only, and keep all values in Brazilian Portuguese (pt-BR).
 """.strip()
 
     result = llm.complete_json(SYSTEM_PROMPT, user_prompt, stage="extraction")
+    print(result)
 
     if result:
         return ExtractedRequirements(

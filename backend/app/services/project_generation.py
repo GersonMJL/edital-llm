@@ -7,6 +7,7 @@ You are a technical writer specialized in grant proposal drafting.
 Return valid JSON only with the following fields:
 introducao, justificativa, objetivos, metodologia, cronograma, orcamento.
 All generated textual content must be in Brazilian Portuguese (pt-BR).
+Each field value must be formatted as Markdown, using natural prose, bullet lists, or numbered lists when helpful.
 """.strip()
 
 
@@ -32,6 +33,7 @@ PROJECT INPUT:
 - Orcamento estimado: {project_input.orcamento_estimado}
 
 Important: all JSON string values must be written in Brazilian Portuguese (pt-BR).
+Important: each JSON string value must be valid Markdown text for its section. Do not use HTML tags.
 """.strip()
 
     result = llm.complete_json(SYSTEM_PROMPT, user_prompt, stage="generation")
@@ -46,10 +48,33 @@ Important: all JSON string values must be written in Brazilian Portuguese (pt-BR
         )
 
     return ProjectDraft(
-        introducao=f"O projeto {project_input.titulo} responde a uma demanda alinhada ao edital, com foco em impacto tecnico e social.",
-        justificativa="A proposta e relevante por enderecar um problema concreto, com viabilidade de execucao e potencial de disseminacao de resultados.",
-        objetivos=project_input.objetivos,
-        metodologia=project_input.metodologia,
-        cronograma="Meses 1-2: planejamento e ajustes metodologicos. Meses 3-8: execucao tecnica e monitoramento. Meses 9-12: consolidacao, avaliacao e divulgacao.",
-        orcamento=f"Orcamento estimado: {project_input.orcamento_estimado}. Distribuir em recursos humanos, insumos, infraestrutura e divulgacao.",
+        introducao=(
+            f"O projeto **{project_input.titulo}** responde a uma demanda alinhada ao edital, "
+            "com foco em impacto tecnico e social."
+        ),
+        justificativa=(
+            "A proposta e relevante por enderecar um problema concreto, com viabilidade "
+            "de execucao e potencial de disseminacao de resultados."
+        ),
+        objetivos=(
+            "- Consolidar os objetivos estrategicos do projeto.\n"
+            f"- Detalhar metas operacionais com base em: {project_input.objetivos}"
+        ),
+        metodologia=(
+            "A abordagem metodologica contempla etapas de planejamento, execucao e avaliacao.\n\n"
+            f"{project_input.metodologia}"
+        ),
+        cronograma=(
+            "1. **Meses 1-2**: planejamento e ajustes metodologicos.\n"
+            "2. **Meses 3-8**: execucao tecnica e monitoramento.\n"
+            "3. **Meses 9-12**: consolidacao, avaliacao e divulgacao."
+        ),
+        orcamento=(
+            f"Orcamento estimado: **{project_input.orcamento_estimado}**.\n\n"
+            "Distribuicao sugerida:\n"
+            "- Recursos humanos\n"
+            "- Insumos\n"
+            "- Infraestrutura\n"
+            "- Divulgacao"
+        ),
     )

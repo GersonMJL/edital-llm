@@ -6,6 +6,8 @@ import { ProposalForm } from "../components/ProposalForm";
 import { UploadEditalForm } from "../components/UploadEditalForm";
 import { ExtractedRequirements, PipelineResult, extractRequirements, runPipeline, UserProjectInput } from "../services/api";
 
+const LEADING_MARKER_RE = /^\s*(?:[-*]+|\d{1,2}[.)]|[a-z][.)])\s+/i;
+
 export function PipelinePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loadingExtract, setLoadingExtract] = useState(false);
@@ -14,6 +16,14 @@ export function PipelinePage() {
   const [previewText, setPreviewText] = useState("");
   const [result, setResult] = useState<PipelineResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  function handleFileSelected(file: File) {
+    setSelectedFile(file);
+    setRequirements(null);
+    setPreviewText("");
+    setResult(null);
+    setError(null);
+  }
 
   async function handleExtract() {
     if (!selectedFile) return;
@@ -24,26 +34,26 @@ export function PipelinePage() {
       setRequirements(response.requisitos);
       setPreviewText(response.extracted_text_preview);
       setResult(null);
-    } catch {
-      setError("Nao foi possivel extrair requisitos. Verifique o arquivo e tente novamente.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível extrair requisitos. Verifique o arquivo e tente novamente.");
     } finally {
       setLoadingExtract(false);
     }
   }
 
   async function handleRun(input: UserProjectInput) {
-    if (!selectedFile) {
-      setError("Selecione um edital antes de gerar o rascunho.");
+    if (!requirements) {
+      setError("Extraia os requisitos do edital antes de gerar o rascunho.");
       return;
     }
 
     setError(null);
     setLoadingRun(true);
     try {
-      const data = await runPipeline(selectedFile, input);
+      const data = await runPipeline(input, requirements, previewText);
       setResult(data);
-    } catch {
-      setError("Nao foi possivel gerar o rascunho. Confira os campos e tente de novo.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível gerar o rascunho. Confira os campos e tente de novo.");
     } finally {
       setLoadingRun(false);
     }
@@ -55,13 +65,13 @@ export function PipelinePage() {
         <p className="eyebrow">Grant LLM</p>
         <h1>Pipeline para escrita de projetos de edital</h1>
         <p>
-          Extraia requisitos do edital, informe os dados da proposta e gere um rascunho com checklist automatico
+          Extraia requisitos do edital, informe os dados da proposta e gere um rascunho com checklist automático
           de conformidade.
         </p>
       </header>
 
       <UploadEditalForm
-        onFileSelected={setSelectedFile}
+        onFileSelected={handleFileSelected}
         onExtract={handleExtract}
         isLoading={loadingExtract}
         fileName={selectedFile?.name}
@@ -69,24 +79,24 @@ export function PipelinePage() {
 
       {requirements && (
         <section className="card">
-          <h2>Requisitos extraidos</h2>
+          <h2>Requisitos extraídos</h2>
           <div className="requirements-grid">
-            <RequirementList title="Criterios" items={requirements.criterios} />
+            <RequirementList title="Critérios" items={requirements.criterios} />
             <RequirementList title="Prazos" items={requirements.prazos} />
-            <RequirementList title="Formatacao" items={requirements.formatacao} />
-            <RequirementList title="Temas prioritarios" items={requirements.temas_prioritarios} />
+            <RequirementList title="Formatação" items={requirements.formatacao} />
+            <RequirementList title="Temas prioritários" items={requirements.temas_prioritarios} />
           </div>
           <details>
-            <summary>Preview do texto extraido</summary>
+            <summary>Prévia do texto extraído</summary>
             <pre>{previewText}</pre>
           </details>
         </section>
       )}
 
-      <ProposalForm onSubmit={handleRun} isLoading={loadingRun} />
+      <ProposalForm onSubmit={handleRun} isLoading={loadingRun} canSubmit={Boolean(requirements)} />
 
       {error && <p className="error">{error}</p>}
-      {result && (
+      {!loadingRun && result && (
         <>
           <GeneratedDraftView result={result} />
           <ComplianceChecklistView result={result} />
@@ -102,7 +112,7 @@ function RequirementList({ title, items }: { title: string; items: string[] }) {
       <h3>{title}</h3>
       <ul>
         {items.map((item, idx) => (
-          <li key={`${title}-${idx}`}>{item}</li>
+          <li key={`${title}-${idx}`}>{item.replace(LEADING_MARKER_RE, "").trim()}</li>
         ))}
       </ul>
     </div>

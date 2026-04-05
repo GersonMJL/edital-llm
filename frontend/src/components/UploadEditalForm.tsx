@@ -11,7 +11,7 @@ export function UploadEditalForm({ onFileSelected, onExtract, isLoading, fileNam
   return (
     <section className="card">
       <h2>1. Upload do edital</h2>
-      <p>Envie PDF ou TXT para extrair criterios, prazos, formatacao e temas prioritarios.</p>
+      <p>Envie PDF ou TXT para extrair critérios, prazos, formatação e temas prioritários.</p>
       <input
         type="file"
         accept=".pdf,.txt,application/pdf,text/plain"

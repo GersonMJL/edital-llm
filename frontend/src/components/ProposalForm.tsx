@@ -5,6 +5,7 @@ import { UserProjectInput } from "../services/api";
 type Props = {
   onSubmit: (input: UserProjectInput) => void;
   isLoading: boolean;
+  canSubmit: boolean;
 };
 
 const initialState: UserProjectInput = {
@@ -15,7 +16,7 @@ const initialState: UserProjectInput = {
   orcamento_estimado: "",
 };
 
-export function ProposalForm({ onSubmit, isLoading }: Props) {
+export function ProposalForm({ onSubmit, isLoading, canSubmit }: Props) {
   const [form, setForm] = useState<UserProjectInput>(initialState);
 
   function update<K extends keyof UserProjectInput>(key: K, value: UserProjectInput[K]) {
@@ -25,11 +26,11 @@ export function ProposalForm({ onSubmit, isLoading }: Props) {
   return (
     <section className="card">
       <h2>2. Dados do projeto</h2>
-      <p>Preencha as informacoes-chave para gerar o rascunho alinhado ao edital.</p>
+      <p>Preencha as informações-chave para gerar o rascunho alinhado ao edital.</p>
 
       <div className="grid">
         <label>
-          Titulo
+          Título
           <input value={form.titulo} onChange={(e: ChangeEvent<HTMLInputElement>) => update("titulo", e.target.value)} />
         </label>
         <label>
@@ -45,7 +46,7 @@ export function ProposalForm({ onSubmit, isLoading }: Props) {
           <textarea value={form.metodologia} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => update("metodologia", e.target.value)} rows={3} />
         </label>
         <label>
-          Orcamento estimado
+          Orçamento estimado
           <input
             value={form.orcamento_estimado}
             onChange={(e: ChangeEvent<HTMLInputElement>) => update("orcamento_estimado", e.target.value)}
@@ -59,6 +60,7 @@ export function ProposalForm({ onSubmit, isLoading }: Props) {
         onClick={() => onSubmit(form)}
         disabled={
           isLoading ||
+          !canSubmit ||
           !form.titulo ||
           !form.equipe ||
           !form.objetivos ||
@@ -68,6 +70,7 @@ export function ProposalForm({ onSubmit, isLoading }: Props) {
       >
         {isLoading ? "Gerando..." : "Gerar rascunho"}
       </button>
+      {!canSubmit && <p>Extraia os requisitos do edital na etapa 1 para habilitar a geração do rascunho.</p>}
     </section>
   );
 }

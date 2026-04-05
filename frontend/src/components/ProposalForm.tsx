@@ -70,7 +70,7 @@ export function ProposalForm({ onSubmit, isLoading, canSubmit }: Props) {
       >
         {isLoading ? "Gerando..." : "Gerar rascunho"}
       </button>
-      {!canSubmit && <p>Extraia os requisitos do edital na etapa 1 para habilitar a geração do rascunho.</p>}
+      {!canSubmit && <p>Informe a chave da OpenAI e extraia os requisitos do edital na etapa 1 para habilitar a geração do rascunho.</p>}
     </section>
   );
 }

@@ -1,4 +1,4 @@
-# Grant LLM - FastAPI + React
+# Edital LLM - FastAPI + React
 
 MVP para apoiar escrita de projetos em editais de fomento com pipeline de 4 etapas:
 1. ingestao do edital (PDF/TXT)
@@ -28,7 +28,6 @@ cd backend
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -43,8 +42,41 @@ Frontend: http://localhost:5173
 Backend: http://localhost:8000
 Docs API: http://localhost:8000/docs
 
+## Deploy com Docker Compose (VPS)
+
+Esta opcao sobe backend + frontend em containers, com o frontend servido por nginx e proxy para a API em `/api`.
+
+### 1. Preparar variaveis de ambiente
+```bash
+cp .env.example .env
+```
+
+Se for usar dominio, ajuste em `.env`:
+- `FRONTEND_ORIGIN=https://seu-dominio.com`
+
+### 2. Build e subida dos containers
+```bash
+docker compose up -d --build
+```
+
+### 3. Verificar status e logs
+```bash
+docker compose ps
+docker compose logs -f backend
+docker compose logs -f frontend
+```
+
+### 4. Acesso
+- Aplicacao: `http://IP_DA_VPS`
+- Healthcheck: `http://IP_DA_VPS/health`
+
+### 5. Atualizar versao no servidor
+```bash
+git pull
+docker compose up -d --build
+```
+
 ## Variaveis de ambiente (backend)
-- `OPENAI_API_KEY`: chave da OpenAI
 - `OPENAI_MODEL`: modelo principal para prompts longos (padrao `gpt-4.1`)
 - `OPENAI_MODEL_MINI`: modelo economico para tarefas estruturadas (padrao `gpt-4.1-mini`)
 - `OPENAI_MODEL_EXTRACTION`: modelo padrao da etapa de extracao (padrao `gpt-4.1-mini`)
@@ -54,6 +86,12 @@ Docs API: http://localhost:8000/docs
 - `MAX_UPLOAD_MB`: limite de upload
 - `FRONTEND_ORIGIN`: origem permitida para CORS
 
+### Chave da OpenAI no formulario
+- A chave deve ser informada pelo usuario em um campo da interface web.
+- O frontend envia `openai_api_key` em cada chamada aos endpoints `POST /api/pipeline/extract` e `POST /api/pipeline/run`.
+- Em modo normal, a API retorna erro se a chave nao for enviada.
+- Em `LLM_MOCK=true`, o backend usa fallback local e a chave nao e obrigatoria.
+
 ## Roteamento de modelos
 - Extracao de requisitos usa `OPENAI_MODEL_EXTRACTION` por padrao.
 - Geracao de rascunho usa `OPENAI_MODEL_GENERATION` por padrao.
@@ -61,8 +99,8 @@ Docs API: http://localhost:8000/docs
 
 ## Endpoints principais
 - `GET /health`
-- `POST /api/pipeline/extract` (multipart com `edital_file`)
-- `POST /api/pipeline/run` (multipart com `edital_file` e `project_input_json`)
+- `POST /api/pipeline/extract` (multipart com `edital_file` e `openai_api_key`)
+- `POST /api/pipeline/run` (multipart com `project_input_json`, `requisitos_json`, `extracted_text_preview` e `openai_api_key`)
 
 ## Testes
 ```bash

@@ -35,7 +35,7 @@ export type PipelineResult = {
   };
 };
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
 async function buildApiError(response: Response, fallbackMessage: string): Promise<Error> {
   try {
@@ -50,9 +50,13 @@ async function buildApiError(response: Response, fallbackMessage: string): Promi
   return new Error(fallbackMessage);
 }
 
-export async function extractRequirements(file: File): Promise<{ extracted_text_preview: string; requisitos: ExtractedRequirements }> {
+export async function extractRequirements(
+  file: File,
+  openaiApiKey: string,
+): Promise<{ extracted_text_preview: string; requisitos: ExtractedRequirements }> {
   const form = new FormData();
   form.append("edital_file", file);
+  form.append("openai_api_key", openaiApiKey);
 
   const response = await fetch(`${API_BASE}/api/pipeline/extract`, {
     method: "POST",
@@ -70,11 +74,13 @@ export async function runPipeline(
   input: UserProjectInput,
   requisitos: ExtractedRequirements,
   extractedTextPreview: string,
+  openaiApiKey: string,
 ): Promise<PipelineResult> {
   const form = new FormData();
   form.append("project_input_json", JSON.stringify(input));
   form.append("requisitos_json", JSON.stringify(requisitos));
   form.append("extracted_text_preview", extractedTextPreview);
+  form.append("openai_api_key", openaiApiKey);
 
   const response = await fetch(`${API_BASE}/api/pipeline/run`, {
     method: "POST",

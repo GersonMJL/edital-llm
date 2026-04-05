@@ -120,6 +120,11 @@ button:disabled {
   border-radius: 999px;
 }
 
+.api-key-field {
+  display: block;
+  margin: 0.75rem 0 0.6rem;
+}
+
 pre {
   white-space: pre-wrap;
   background: #111;

@@ -9,9 +9,10 @@ PipelineStage = Literal["extraction", "generation", "checklist"]
 
 
 class LLMClient:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, api_key: str = ""):
         self.settings = settings
-        self.client = OpenAI(api_key=settings.openai_api_key) if settings.openai_api_key else None
+        normalized_key = api_key.strip()
+        self.client = OpenAI(api_key=normalized_key) if normalized_key else None
 
     @staticmethod
     def _estimate_tokens(text: str) -> int:
@@ -30,8 +31,11 @@ class LLMClient:
         return self.settings.openai_model_mini
 
     def complete_json(self, system_prompt: str, user_prompt: str, stage: PipelineStage) -> dict:
-        if self.settings.llm_mock or not self.client:
+        if self.settings.llm_mock:
             return {}
+
+        if not self.client:
+            raise RuntimeError("Chave da OpenAI nao informada.")
 
         selected_model = self._route_model(stage, system_prompt, user_prompt)
 

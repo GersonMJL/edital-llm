@@ -17,8 +17,8 @@ MVP para apoiar escrita de projetos em editais de fomento com pipeline de 4 etap
 - `docs/prompts.md`: prompts e estrategia por etapa
 
 ## Requisitos
-- Python 3.11+
-- Node.js 20+
+- Python 3.14+
+- Node.js 24+
 
 ## Como executar
 
@@ -42,9 +42,30 @@ Frontend: http://localhost:5173
 Backend: http://localhost:8000
 Docs API: http://localhost:8000/docs
 
+## Desenvolvimento local com Docker Compose
+
+Este compose padrao (`docker-compose.yml`) sobe backend + frontend em modo de desenvolvimento:
+- backend com `uvicorn --reload`
+- frontend com Vite (`npm run dev`)
+
+### 1. Preparar variaveis de ambiente
+```bash
+cp .env.example .env
+```
+
+### 2. Subir ambiente local
+```bash
+docker compose up --build
+```
+
+### 3. Acesso local
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:8000`
+- Docs API: `http://localhost:8000/docs`
+
 ## Deploy com Docker Compose (VPS)
 
-Esta opcao sobe backend + frontend em containers, com o frontend servido por nginx e proxy para a API em `/api`.
+Esta opcao usa o arquivo `docker-compose.prod.yml` para subir backend + frontend em containers, com o frontend servido por nginx e proxy para a API em `/api`.
 
 ### 1. Preparar variaveis de ambiente
 ```bash
@@ -56,14 +77,14 @@ Se for usar dominio, ajuste em `.env`:
 
 ### 2. Build e subida dos containers
 ```bash
-docker compose up -d --build
+docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 ### 3. Verificar status e logs
 ```bash
-docker compose ps
-docker compose logs -f backend
-docker compose logs -f frontend
+docker compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.prod.yml logs -f frontend
 ```
 
 ### 4. Acesso
@@ -73,7 +94,7 @@ docker compose logs -f frontend
 ### 5. Atualizar versao no servidor
 ```bash
 git pull
-docker compose up -d --build
+docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 ## Variaveis de ambiente (backend)

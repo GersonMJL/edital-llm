@@ -35,7 +35,7 @@ export type PipelineResult = {
   };
 };
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api").replace(/\/$/, "");
 
 async function buildApiError(response: Response, fallbackMessage: string): Promise<Error> {
   try {
@@ -58,7 +58,7 @@ export async function extractRequirements(
   form.append("edital_file", file);
   form.append("openai_api_key", openaiApiKey);
 
-  const response = await fetch(`${API_BASE}/api/pipeline/extract`, {
+  const response = await fetch(`${API_BASE}/pipeline/extract`, {
     method: "POST",
     body: form,
   });
@@ -82,7 +82,7 @@ export async function runPipeline(
   form.append("extracted_text_preview", extractedTextPreview);
   form.append("openai_api_key", openaiApiKey);
 
-  const response = await fetch(`${API_BASE}/api/pipeline/run`, {
+  const response = await fetch(`${API_BASE}/pipeline/run`, {
     method: "POST",
     body: form,
   });

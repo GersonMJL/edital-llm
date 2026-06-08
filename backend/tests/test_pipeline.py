@@ -52,7 +52,7 @@ def test_extract_works_without_api_key_in_form() -> None:
     assert "extracted_text_preview" in data
 
 
-def test_run_works_without_api_key_in_form() -> None:
+def test_run_returns_sse_events() -> None:
     project_input = {
         "titulo": "Projeto Teste",
         "equipe": "Equipe A",
@@ -75,9 +75,25 @@ def test_run_works_without_api_key_in_form() -> None:
         },
     )
     assert response.status_code == 200
-    data = response.json()
-    assert "rascunho" in data
-    assert "checklist" in data
+    assert "text/event-stream" in response.headers["content-type"]
+
+    raw = response.text
+    event_names = [
+        line.split(":", 1)[1].strip()
+        for line in raw.splitlines()
+        if line.startswith("event:")
+    ]
+    assert "draft_ready" in event_names
+    assert "complete" in event_names
+
+    lines = raw.splitlines()
+    for i, line in enumerate(lines):
+        if line.strip() == "event: complete":
+            data_line = lines[i + 1] if i + 1 < len(lines) else ""
+            data = json.loads(data_line.split(":", 1)[1].strip())
+            assert "rascunho" in data
+            assert "checklist" in data
+            break
 
 
 def test_extract_caches_result_and_returns_hit_on_second_call() -> None:

@@ -44,7 +44,7 @@ async def extract_only(
     }
 
 
-@router.post("/run", response_model=PipelineRunResponse)
+@router.post("/run")
 async def run_pipeline(
     project_input_json: str = Form(...),
     requisitos_json: str = Form(...),
@@ -55,12 +55,21 @@ async def run_pipeline(
     requisitos = ExtractedRequirements(**json.loads(requisitos_json))
     llm = LLMClient(settings)
 
-    rascunho = await generate_project_draft(requisitos, project_input, llm)
-    checklist = await build_compliance_checklist(requisitos, rascunho, llm)
+    async def event_stream():
+        try:
+            yield f"event: progress\ndata: {json.dumps({'stage': 'draft', 'message': 'Gerando rascunho...'})}\n\n"
+            rascunho = await generate_project_draft(requisitos, project_input, llm)
+            yield f"event: draft_ready\ndata: {json.dumps({'rascunho': rascunho.model_dump()})}\n\n"
+            yield f"event: progress\ndata: {json.dumps({'stage': 'checklist', 'message': 'Verificando conformidade...'})}\n\n"
+            checklist = await build_compliance_checklist(requisitos, rascunho, llm)
+            result = PipelineRunResponse(
+                extracted_text_preview=extracted_text_preview[:1200],
+                requisitos=requisitos,
+                rascunho=rascunho,
+                checklist=checklist,
+            )
+            yield f"event: complete\ndata: {json.dumps(result.model_dump())}\n\n"
+        except Exception as exc:
+            yield f"event: error\ndata: {json.dumps({'detail': str(exc)})}\n\n"
 
-    return PipelineRunResponse(
-        extracted_text_preview=extracted_text_preview[:1200],
-        requisitos=requisitos,
-        rascunho=rascunho,
-        checklist=checklist,
-    )
+    return StreamingResponse(event_stream(), media_type="text/event-stream")

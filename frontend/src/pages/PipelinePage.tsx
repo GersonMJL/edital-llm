@@ -10,7 +10,6 @@ const LEADING_MARKER_RE = /^\s*(?:[-*]+|\d{1,2}[.)]|[a-z][.)])\s+/i;
 
 export function PipelinePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [apiKey, setApiKey] = useState("");
   const [loadingExtract, setLoadingExtract] = useState(false);
   const [loadingRun, setLoadingRun] = useState(false);
   const [requirements, setRequirements] = useState<ExtractedRequirements | null>(null);
@@ -28,15 +27,11 @@ export function PipelinePage() {
 
   async function handleExtract() {
     if (!selectedFile) return;
-    if (!apiKey.trim()) {
-      setError("Informe a chave da OpenAI para extrair os requisitos.");
-      return;
-    }
 
     setError(null);
     setLoadingExtract(true);
     try {
-      const response = await extractRequirements(selectedFile, apiKey);
+      const response = await extractRequirements(selectedFile);
       setRequirements(response.requisitos);
       setPreviewText(response.extracted_text_preview);
       setResult(null);
@@ -53,15 +48,10 @@ export function PipelinePage() {
       return;
     }
 
-    if (!apiKey.trim()) {
-      setError("Informe a chave da OpenAI para gerar o rascunho.");
-      return;
-    }
-
     setError(null);
     setLoadingRun(true);
     try {
-      const data = await runPipeline(input, requirements, previewText, apiKey);
+      const data = await runPipeline(input, requirements, previewText);
       setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível gerar o rascunho. Confira os campos e tente de novo.");
@@ -83,8 +73,6 @@ export function PipelinePage() {
 
       <UploadEditalForm
         onFileSelected={handleFileSelected}
-        apiKey={apiKey}
-        onApiKeyChange={setApiKey}
         onExtract={handleExtract}
         isLoading={loadingExtract}
         fileName={selectedFile?.name}
@@ -106,7 +94,7 @@ export function PipelinePage() {
         </section>
       )}
 
-      <ProposalForm onSubmit={handleRun} isLoading={loadingRun} canSubmit={Boolean(requirements && apiKey.trim())} />
+      <ProposalForm onSubmit={handleRun} isLoading={loadingRun} canSubmit={Boolean(requirements)} />
 
       {error && <p className="error">{error}</p>}
       {!loadingRun && result && (

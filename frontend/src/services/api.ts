@@ -13,17 +13,19 @@ export type ExtractedRequirements = {
   temas_prioritarios: string[];
 };
 
+export type ProjectDraft = {
+  introducao: string;
+  justificativa: string;
+  objetivos: string;
+  metodologia: string;
+  cronograma: string;
+  orcamento: string;
+};
+
 export type PipelineResult = {
   extracted_text_preview: string;
   requisitos: ExtractedRequirements;
-  rascunho: {
-    introducao: string;
-    justificativa: string;
-    objetivos: string;
-    metodologia: string;
-    cronograma: string;
-    orcamento: string;
-  };
+  rascunho: ProjectDraft;
   checklist: {
     score: number;
     itens: Array<{
@@ -68,24 +70,74 @@ export async function extractRequirements(
   return response.json();
 }
 
-export async function runPipeline(
+export type RunPipelineCallbacks = {
+  onProgress: (message: string) => void;
+  onDraftReady: (draft: ProjectDraft) => void;
+  onComplete: (result: PipelineResult) => void;
+  onError: (detail: string) => void;
+};
+
+export async function runPipelineStream(
   input: UserProjectInput,
   requisitos: ExtractedRequirements,
   extractedTextPreview: string,
-): Promise<PipelineResult> {
+  callbacks: RunPipelineCallbacks,
+): Promise<void> {
   const form = new FormData();
   form.append("project_input_json", JSON.stringify(input));
   form.append("requisitos_json", JSON.stringify(requisitos));
   form.append("extracted_text_preview", extractedTextPreview);
 
-  const response = await fetch(`${API_BASE}/api/pipeline/run`, {
-    method: "POST",
-    body: form,
-  });
-
-  if (!response.ok) {
-    throw await buildApiError(response, "Falha ao gerar rascunho e checklist.");
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}/api/pipeline/run`, {
+      method: "POST",
+      body: form,
+    });
+  } catch {
+    callbacks.onError("Não foi possível conectar ao servidor.");
+    return;
   }
 
-  return response.json();
+  if (!response.ok) {
+    const err = await buildApiError(response, "Falha ao gerar rascunho e checklist.");
+    callbacks.onError(err.message);
+    return;
+  }
+
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop() ?? "";
+
+    for (const part of parts) {
+      const lines = part.trim().split("\n");
+      let eventName = "";
+      let dataLine = "";
+      for (const line of lines) {
+        if (line.startsWith("event:")) eventName = line.slice(6).trim();
+        if (line.startsWith("data:")) dataLine = line.slice(5).trim();
+      }
+      if (!eventName || !dataLine) continue;
+
+      let payload: Record<string, unknown>;
+      try {
+        payload = JSON.parse(dataLine) as Record<string, unknown>;
+      } catch {
+        continue;
+      }
+
+      if (eventName === "progress") callbacks.onProgress(payload.message as string);
+      else if (eventName === "draft_ready") callbacks.onDraftReady(payload.rascunho as ProjectDraft);
+      else if (eventName === "complete") callbacks.onComplete(payload as PipelineResult);
+      else if (eventName === "error") callbacks.onError(payload.detail as string);
+    }
+  }
 }

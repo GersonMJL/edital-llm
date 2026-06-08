@@ -56,7 +56,7 @@ export async function extractRequirements(
   const form = new FormData();
   form.append("edital_file", file);
 
-  const response = await fetch(`${API_BASE}/pipeline/extract`, {
+  const response = await fetch(`${API_BASE}/v1/pipeline/extract`, {
     method: "POST",
     body: form,
   });
@@ -78,7 +78,7 @@ export async function runPipeline(
   form.append("requisitos_json", JSON.stringify(requisitos));
   form.append("extracted_text_preview", extractedTextPreview);
 
-  const response = await fetch(`${API_BASE}/pipeline/run`, {
+  const response = await fetch(`${API_BASE}/v1/pipeline/run`, {
     method: "POST",
     body: form,
   });

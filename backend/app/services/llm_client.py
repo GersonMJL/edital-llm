@@ -9,10 +9,14 @@ PipelineStage = Literal["extraction", "generation", "checklist"]
 
 
 class LLMClient:
-    def __init__(self, settings: Settings, api_key: str = ""):
+    def __init__(self, settings: Settings):
         self.settings = settings
-        normalized_key = api_key.strip()
-        self.client = OpenAI(api_key=normalized_key) if normalized_key else None
+        api_key = settings.openai_api_key.strip()
+        if not settings.llm_mock and not api_key:
+            raise RuntimeError(
+                "OPENAI_API_KEY não configurado. Defina a variável de ambiente OPENAI_API_KEY."
+            )
+        self.client = OpenAI(api_key=api_key) if api_key else None
 
     @staticmethod
     def _estimate_tokens(text: str) -> int:

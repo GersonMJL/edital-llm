@@ -1,7 +1,7 @@
 import json
 from typing import Literal
 
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from app.config import Settings
 
@@ -16,11 +16,10 @@ class LLMClient:
             raise RuntimeError(
                 "OPENAI_API_KEY não configurado. Defina a variável de ambiente OPENAI_API_KEY."
             )
-        self.client = OpenAI(api_key=api_key) if api_key else None
+        self.client = AsyncOpenAI(api_key=api_key) if api_key else None
 
     @staticmethod
     def _estimate_tokens(text: str) -> int:
-        # Quick approximation for routing decisions; avoids extra tokenizer deps.
         return max(1, len(text) // 4)
 
     def _route_model(self, stage: PipelineStage, system_prompt: str, user_prompt: str) -> str:
@@ -34,7 +33,7 @@ class LLMClient:
             return self.settings.openai_model_generation
         return self.settings.openai_model_mini
 
-    def complete_json(self, system_prompt: str, user_prompt: str, stage: PipelineStage) -> dict:
+    async def complete_json(self, system_prompt: str, user_prompt: str, stage: PipelineStage) -> dict:
         if self.settings.llm_mock:
             return {}
 
@@ -43,7 +42,7 @@ class LLMClient:
 
         selected_model = self._route_model(stage, system_prompt, user_prompt)
 
-        response = self.client.responses.create(
+        response = await self.client.responses.create(
             model=selected_model,
             input=[
                 {"role": "system", "content": system_prompt},

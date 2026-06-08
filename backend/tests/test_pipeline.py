@@ -18,5 +18,5 @@ def test_settings_openai_api_key_field() -> None:
 
 
 def test_settings_openai_api_key_defaults_empty() -> None:
-    settings = Settings.model_construct(llm_mock=True)
+    settings = Settings(llm_mock=True)
     assert settings.openai_api_key == ""

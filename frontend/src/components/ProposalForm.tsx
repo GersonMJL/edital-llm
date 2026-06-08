@@ -35,7 +35,7 @@ export function ProposalForm({ onSubmit, isLoading, canSubmit }: Props) {
         </label>
         <label>
           Equipe
-          <input value={form.equipe} onChange={(e: ChangeEvent<HTMLInputElement>) => update("equipe", e.target.value)} />
+          <textarea value={form.equipe} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => update("equipe", e.target.value)} rows={3} />
         </label>
         <label>
           Objetivos
@@ -47,9 +47,10 @@ export function ProposalForm({ onSubmit, isLoading, canSubmit }: Props) {
         </label>
         <label>
           Orçamento estimado
-          <input
+          <textarea
             value={form.orcamento_estimado}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => update("orcamento_estimado", e.target.value)}
+            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => update("orcamento_estimado", e.target.value)}
+            rows={3}
             placeholder="Ex: R$ 250.000"
           />
         </label>

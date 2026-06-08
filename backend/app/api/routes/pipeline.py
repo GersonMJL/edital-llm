@@ -20,7 +20,7 @@ async def extract_only(
 ):
     llm = LLMClient(settings)
     edital_text = await ingest_edital_file(edital_file, settings.max_upload_mb)
-    requisitos = extract_requirements(edital_text, llm)
+    requisitos = await extract_requirements(edital_text, llm)
     return {
         "extracted_text_preview": edital_text[:1200],
         "requisitos": requisitos.model_dump(),
@@ -38,8 +38,8 @@ async def run_pipeline(
     requisitos = ExtractedRequirements(**json.loads(requisitos_json))
     llm = LLMClient(settings)
 
-    rascunho = generate_project_draft(requisitos, project_input, llm)
-    checklist = build_compliance_checklist(requisitos, rascunho, llm)
+    rascunho = await generate_project_draft(requisitos, project_input, llm)
+    checklist = await build_compliance_checklist(requisitos, rascunho, llm)
 
     return PipelineRunResponse(
         extracted_text_preview=extracted_text_preview[:1200],

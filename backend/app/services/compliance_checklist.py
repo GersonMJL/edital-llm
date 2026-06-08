@@ -89,7 +89,7 @@ def _build_fallback_checklist(requisitos: ExtractedRequirements, draft: ProjectD
     return ComplianceChecklist(score=score, itens=items, sugestoes_melhoria=suggestions)
 
 
-def build_compliance_checklist(requisitos: ExtractedRequirements, draft: ProjectDraft, llm: LLMClient) -> ComplianceChecklist:
+async def build_compliance_checklist(requisitos: ExtractedRequirements, draft: ProjectDraft, llm: LLMClient) -> ComplianceChecklist:
     all_requirements = (
         requisitos.criterios
         + requisitos.prazos
@@ -116,7 +116,7 @@ Return JSON with:
 - sugestoes_melhoria: a list of practical and objective recommendations.
 """.strip()
 
-    result = llm.complete_json(SYSTEM_PROMPT, user_prompt, stage="checklist")
+    result = await llm.complete_json(SYSTEM_PROMPT, user_prompt, stage="checklist")
     if result:
         raw_items = result.get("itens", [])
         items: list[ChecklistItem] = []

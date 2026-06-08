@@ -11,7 +11,7 @@ Each field value must be formatted as Markdown, using natural prose, bullet list
 """.strip()
 
 
-def generate_project_draft(
+async def generate_project_draft(
     requisitos: ExtractedRequirements,
     project_input: UserProjectInput,
     llm: LLMClient,
@@ -36,7 +36,7 @@ Important: all JSON string values must be written in Brazilian Portuguese (pt-BR
 Important: each JSON string value must be valid Markdown text for its section. Do not use HTML tags.
 """.strip()
 
-    result = llm.complete_json(SYSTEM_PROMPT, user_prompt, stage="generation")
+    result = await llm.complete_json(SYSTEM_PROMPT, user_prompt, stage="generation")
     if result:
         return ProjectDraft(
             introducao=result.get("introducao", ""),

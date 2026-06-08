@@ -10,7 +10,7 @@ All extracted string content must be written in Brazilian Portuguese (pt-BR).
 """.strip()
 
 
-def extract_requirements(edital_text: str, llm: LLMClient) -> ExtractedRequirements:
+async def extract_requirements(edital_text: str, llm: LLMClient) -> ExtractedRequirements:
     user_prompt = f"""
 Analyze the funding call text below and extract the requested requirements.
 
@@ -20,7 +20,7 @@ FUNDING CALL TEXT:
 Return JSON with the required fields only, and keep all values in Brazilian Portuguese (pt-BR).
 """.strip()
 
-    result = llm.complete_json(SYSTEM_PROMPT, user_prompt, stage="extraction")
+    result = await llm.complete_json(SYSTEM_PROMPT, user_prompt, stage="extraction")
     print(result)
 
     if result:

@@ -78,3 +78,26 @@ def test_run_works_without_api_key_in_form() -> None:
     data = response.json()
     assert "rascunho" in data
     assert "checklist" in data
+
+
+def test_extract_caches_result_and_returns_hit_on_second_call() -> None:
+    from app.services.edital_cache import edital_cache
+    edital_cache._store.clear()
+    edital_cache._order.clear()
+
+    content = b"Prazo de entrega: 30 dias. Criterio: relevancia tecnica."
+
+    response1 = client.post(
+        "/api/pipeline/extract",
+        files={"edital_file": ("e.txt", io.BytesIO(content), "text/plain")},
+    )
+    assert response1.status_code == 200
+    assert edital_cache.size() == 1
+
+    response2 = client.post(
+        "/api/pipeline/extract",
+        files={"edital_file": ("e.txt", io.BytesIO(content), "text/plain")},
+    )
+    assert response2.status_code == 200
+    assert edital_cache.size() == 1  # no new entry
+    assert response1.json()["requisitos"] == response2.json()["requisitos"]

@@ -82,6 +82,7 @@ export function PipelinePage() {
         setLoadingRun(false);
       },
     });
+    setLoadingRun(false);
   }
 
   const draftForDisplay = result

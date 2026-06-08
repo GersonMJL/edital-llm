@@ -3,6 +3,7 @@ services:
     build:
       context: ./backend
     environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1}
       OPENAI_MODEL_MINI: ${OPENAI_MODEL_MINI:-gpt-4.1-mini}
       OPENAI_MODEL_EXTRACTION: ${OPENAI_MODEL_EXTRACTION:-gpt-4.1-mini}

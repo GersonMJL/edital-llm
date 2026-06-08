@@ -22,8 +22,10 @@ def test_settings_openai_api_key_field() -> None:
     assert settings.openai_api_key == "sk-test"
 
 
-def test_settings_openai_api_key_defaults_empty() -> None:
-    settings = Settings(llm_mock=True)
+def test_settings_openai_api_key_defaults_empty(monkeypatch) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    # pydantic-settings loads from .env file, so we patch the default value
+    settings = Settings(_env_file=None, llm_mock=True)  # type: ignore[call-arg]
     assert settings.openai_api_key == ""
 
 

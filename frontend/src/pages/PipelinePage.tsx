@@ -4,7 +4,14 @@ import { ComplianceChecklistView } from "../components/ComplianceChecklistView";
 import { GeneratedDraftView } from "../components/GeneratedDraftView";
 import { ProposalForm } from "../components/ProposalForm";
 import { UploadEditalForm } from "../components/UploadEditalForm";
-import { ExtractedRequirements, PipelineResult, extractRequirements, runPipeline, UserProjectInput } from "../services/api";
+import {
+  ExtractedRequirements,
+  PipelineResult,
+  ProjectDraft,
+  extractRequirements,
+  runPipelineStream,
+  UserProjectInput,
+} from "../services/api";
 
 const LEADING_MARKER_RE = /^\s*(?:[-*]+|\d{1,2}[.)]|[a-z][.)])\s+/i;
 
@@ -14,14 +21,18 @@ export function PipelinePage() {
   const [loadingRun, setLoadingRun] = useState(false);
   const [requirements, setRequirements] = useState<ExtractedRequirements | null>(null);
   const [previewText, setPreviewText] = useState("");
+  const [partialDraft, setPartialDraft] = useState<ProjectDraft | null>(null);
   const [result, setResult] = useState<PipelineResult | null>(null);
+  const [runMessage, setRunMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   function handleFileSelected(file: File) {
     setSelectedFile(file);
     setRequirements(null);
     setPreviewText("");
+    setPartialDraft(null);
     setResult(null);
+    setRunMessage(null);
     setError(null);
   }
 
@@ -34,6 +45,7 @@ export function PipelinePage() {
       const response = await extractRequirements(selectedFile);
       setRequirements(response.requisitos);
       setPreviewText(response.extracted_text_preview);
+      setPartialDraft(null);
       setResult(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível extrair requisitos. Verifique o arquivo e tente novamente.");
@@ -50,15 +62,38 @@ export function PipelinePage() {
 
     setError(null);
     setLoadingRun(true);
-    try {
-      const data = await runPipeline(input, requirements, previewText);
-      setResult(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível gerar o rascunho. Confira os campos e tente de novo.");
-    } finally {
-      setLoadingRun(false);
-    }
+    setPartialDraft(null);
+    setResult(null);
+    setRunMessage(null);
+
+    await runPipelineStream(input, requirements, previewText, {
+      onProgress: (msg) => setRunMessage(msg),
+      onDraftReady: (draft) => {
+        setPartialDraft(draft);
+        setRunMessage(null);
+      },
+      onComplete: (fullResult) => {
+        setResult(fullResult);
+        setPartialDraft(null);
+        setLoadingRun(false);
+      },
+      onError: (detail) => {
+        setError(detail);
+        setLoadingRun(false);
+      },
+    });
   }
+
+  const draftForDisplay = result
+    ? result
+    : partialDraft
+    ? ({
+        extracted_text_preview: previewText,
+        requisitos: requirements!,
+        rascunho: partialDraft,
+        checklist: { score: 0, itens: [], sugestoes_melhoria: [] },
+      } as PipelineResult)
+    : null;
 
   return (
     <main className="layout">
@@ -97,11 +132,15 @@ export function PipelinePage() {
       <ProposalForm onSubmit={handleRun} isLoading={loadingRun} canSubmit={Boolean(requirements)} />
 
       {error && <p className="error">{error}</p>}
+
+      {loadingRun && runMessage && <p className="loading-message">{runMessage}</p>}
+
+      {draftForDisplay && (
+        <GeneratedDraftView result={draftForDisplay} />
+      )}
+
       {!loadingRun && result && (
-        <>
-          <GeneratedDraftView result={result} />
-          <ComplianceChecklistView result={result} />
-        </>
+        <ComplianceChecklistView result={result} />
       )}
     </main>
   );

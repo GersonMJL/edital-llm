@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     llm_context_switch_tokens: int = 20000
     llm_mock: bool = False
     max_upload_mb: int = 10
+    edital_cache_size: int = 50
     frontend_origin: str = "http://localhost:5173,http://127.0.0.1:5173"
     app_log_level: str = "INFO"
 
